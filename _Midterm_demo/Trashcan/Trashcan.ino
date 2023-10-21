@@ -28,25 +28,26 @@ void setup() {
   myservo_base.attach(D2); //Connect servo 
 
   // door
-  pinMode(WIO_KEY_C, INPUT);
-  pinMode(WIO_KEY_B, INPUT);
-  pinMode(WIO_KEY_A, INPUT);
+  pinMode(WIO_KEY_C, INPUT); // close door
+  pinMode(WIO_KEY_B, INPUT); // open door
+  pinMode(WIO_KEY_A, INPUT); // drop trash
    
   // base
   pinMode(WIO_5S_LEFT, INPUT);
+  pinMode(WIO_5S_UP, INPUT);
   pinMode(WIO_5S_RIGHT, INPUT);
   
   // initializer
   door_position = getDoorPosition();
   base_position = getBasePosition();
   setDoorClose();
-  setBaseCesto3();
+  setBaseCesto1();
   
   // Sprite for the display
   tft.begin();
   tft.setRotation(3);
   spr.createSprite(TFT_HEIGHT,TFT_WIDTH);
-  tft.fillScreen(TFT_RED);
+  tft.fillScreen(TFT_BLUE);
 }
 
 void loop() {
@@ -85,25 +86,30 @@ void loop() {
   // Door conditions; 
   if (digitalRead(WIO_KEY_C) == LOW){
     setDoorOpen();
-    tft.fillScreen(TFT_RED);
+    tft.fillScreen(TFT_BLUE);
   }
   else if (digitalRead(WIO_KEY_B) == LOW){
     setDoorClose();
-    tft.fillScreen(TFT_RED);
+    tft.fillScreen(TFT_BLUE);
   }
   else if (digitalRead(WIO_KEY_A) == LOW){
     setDoorOpen();
+    delay(500);
     setDoorClose();
-    tft.fillScreen(TFT_RED);
+    tft.fillScreen(TFT_BLUE);
   }
   // Base rotation conditions
   else if (digitalRead(WIO_5S_LEFT) == LOW){
     setBaseCesto1();
-    tft.fillScreen(TFT_RED);
+    tft.fillScreen(TFT_BLUE);
+  }  
+  else if (digitalRead(WIO_5S_UP) == LOW){
+    setBaseCesto2();
+    tft.fillScreen(TFT_BLUE);
   }  
   else if (digitalRead(WIO_5S_RIGHT) == LOW){
     setBaseCesto3();
-      tft.fillScreen(TFT_RED);
+      tft.fillScreen(TFT_BLUE);
   }
   
 }
@@ -144,7 +150,7 @@ void setDoorOpen(){
     Serial.print("opening door: ");
     Serial.println(pos1);
     myservo_door.write(pos1);
-    delay(5);
+    delay(1);
   }
     door_position = 180;
 }
@@ -160,7 +166,7 @@ int getBasePosition(){
   return(valor);
 }
 
-void setBaseCesto3 (){
+void setBaseCesto1 (){
   int pos2 = base_position;
 
   for (pos2; pos2 > 0; pos2 -= 1) {
@@ -172,7 +178,28 @@ void setBaseCesto3 (){
   base_position = 0;
 }
 
-void setBaseCesto1(){
+void setBaseCesto2 (){
+  int pos2 = base_position;
+  if (pos2 > 90){
+    for (pos2; pos2 > 90; pos2 -= 1) {
+      Serial.print("going to cesto 2: ");
+      Serial.println(pos2);
+      myservo_base.write(pos2);
+      delay(10);
+    }
+  }
+  else {
+    for (pos2; pos2 < 90; pos2 += 1) {
+      Serial.print("going to cesto 2: ");
+      Serial.println(pos2);
+      myservo_base.write(pos2);
+      delay(10);
+    }
+  }
+  base_position = 90;
+}
+
+void setBaseCesto3(){
   int pos2 = base_position;
   
   for (pos2; pos2 < 180; pos2 += 1) {
@@ -186,6 +213,6 @@ void setBaseCesto1(){
 
 void thisDraw(String trash, int x, int y){
   tft.setTextColor(TFT_WHITE);          //sets the text colour to black
-  tft.setTextSize(3);                   //sets the size of text
+  tft.setTextSize(2);                   //sets the size of text
   tft.drawString(trash, x, y);
 }
