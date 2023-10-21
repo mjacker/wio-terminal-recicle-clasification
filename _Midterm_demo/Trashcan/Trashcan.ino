@@ -8,104 +8,107 @@ TFT_eSprite spr = TFT_eSprite(&tft);  // Sprite
  *----------------------------------------------------------------------------*/
 void led();
 int getDoorPosition();
-int getBaseRotation();
-
-int servo_base_pin = D8;
+int getBasePosition();
 
 // door
 Servo myservo_door;
-int door_pos_position = 0; // 0 - 18
-int pos1 = 0;
-
-// base
 Servo myservo_base;
-/* MG995, 90 = stop,
-          0 = CW full speed,
-          180 = anti CW full speed 
-*/
-int base_rotation = 1500; // 0 - 360
-int angle = 0;
+
+int door_position = 0; // 0 - 180
+int base_position = 0; // 0 - 180
+
+//int pos1 = 0;
+//int pos2 = 0;
 
 void setup() {
   // Print messages in the console
   Serial.begin(9600); // open the serial port at 9600 bps:
 
   myservo_door.attach(D6); // Connet servo 
-  myservo_base.attach(servo_base_pin); //Connect servo to Grove Digital Port
-  //myservo_base.writeMicroseconds(base_rotation);
+  myservo_base.attach(D2); //Connect servo 
 
-  // led
-  pinMode(D0, OUTPUT);
-  
   // door
   pinMode(WIO_KEY_C, INPUT);
   pinMode(WIO_KEY_B, INPUT);
-  
+  pinMode(WIO_KEY_A, INPUT);
+   
   // base
   pinMode(WIO_5S_LEFT, INPUT);
   pinMode(WIO_5S_RIGHT, INPUT);
   
   // initializer
-  door_pos_position = getDoorPosition();
+  door_position = getDoorPosition();
+  base_position = getBasePosition();
   setDoorClose();
-
-
+  setBaseCesto3();
+  
   // Sprite for the display
   tft.begin();
   tft.setRotation(3);
   spr.createSprite(TFT_HEIGHT,TFT_WIDTH);
-
   tft.fillScreen(TFT_RED);
-
 }
 
 void loop() {
   led();
 
-thisDraw("DoorPos: "+ (String)door_pos_position,10,10) ;
-  thisDraw("DoorPos: "+ (String)base_rotation, 10, 10) ;
-  thisDraw("ServoDoor_Read: " + (String)myservo_door.read(), 10, 20);
-  thisDraw("ServoDoorMicroSec: " + (String)myservo_door.readMicroseconds(), 10, 30);
-  thisDraw("ServoBase_Read: " + (String)myservo_base.read(), 10, 40);
-  thisDraw("ServoBaseMicroSec: " + (String)myservo_base.readMicroseconds(), 10, 50);
+  // Display menu status servos
+  thisDraw("DoorPos  : " + (String) door_position, 10, 10) ;
+  thisDraw("BasePos  : " + (String) base_position, 10, 30) ;
+  thisDraw("DoorRead : " + (String) myservo_door.read(), 10, 50);
+  thisDraw("BaseRead : " + (String) myservo_base.read(), 10, 70);
 
-  // Print current values:
+  // Doo status
+  thisDraw("Door estatus : " + (String) myservo_base.read(), 10, 90);
+  thisDraw("Cesto Number : " + (String) myservo_base.read(), 10, 110);
+
+  // thisDraw("DoorSec  : " + (String)myservo_door.readMicroseconds(), 10, 70);
+  // thisDraw("BaseSec  : " + (String)myservo_base.readMicroseconds(), 10, 110);
+
+  // Print current values in console
   Serial.print("\n\n\n\n\n\n------------------\n");
   Serial.print("Door position: ");
-  Serial.println(door_pos_position);
+  Serial.println(door_position);
   Serial.print("Base rotation: ");
-  Serial.println(base_rotation);
+  Serial.println(base_position);
   Serial.print("------------------\n");
   Serial.print("-reading door read: ");
   Serial.println(myservo_door.read());
-  Serial.print("-reading door readMicroseconds: ");
-  Serial.println(myservo_door.readMicroseconds());
-  Serial.print("------------------\n");
   Serial.print("-reading servo motor read: ");
   Serial.println(myservo_base.read());
-  Serial.print("-reading servo motor read microseconds: ");
-  Serial.println(myservo_base.readMicroseconds());
+  // Serial.print("-reading door readMicroseconds: ");
+  // Serial.println(myservo_door.readMicroseconds());
+  Serial.print("------------------\n");
+  // Serial.print("-reading servo motor read microseconds: ");
+  // Serial.println(myservo_base.readMicroseconds());
 
   // Door conditions; 
   if (digitalRead(WIO_KEY_C) == LOW){
     setDoorOpen();
+    tft.fillScreen(TFT_RED);
   }
-  
-  if (digitalRead(WIO_KEY_B) == LOW){
+  else if (digitalRead(WIO_KEY_B) == LOW){
     setDoorClose();
+    tft.fillScreen(TFT_RED);
   }
-
+  else if (digitalRead(WIO_KEY_A) == LOW){
+    setDoorOpen();
+    setDoorClose();
+    tft.fillScreen(TFT_RED);
+  }
   // Base rotation conditions
-  if (digitalRead(WIO_5S_LEFT) == LOW){
-    setBaseRight();
+  else if (digitalRead(WIO_5S_LEFT) == LOW){
+    setBaseCesto1();
+    tft.fillScreen(TFT_RED);
+  }  
+  else if (digitalRead(WIO_5S_RIGHT) == LOW){
+    setBaseCesto3();
+      tft.fillScreen(TFT_RED);
   }
   
-  if (digitalRead(WIO_5S_RIGHT) == LOW){
-
-    setBaseLeft();
-  }
 }
 
+// just a led
 void led (){
   digitalWrite(D0, HIGH);  // turn the LED on (HIGH is the voltage level)
   delay(100);                      // wait for a second
@@ -123,97 +126,62 @@ int getDoorPosition(){
 }
 
 void setDoorClose (){
-  int pos1 = door_pos_position;
+  int pos1 = door_position;
 
   for (pos1; pos1 > 0; pos1 -= 1) {
-    Serial.print("closing: ");
+    Serial.print("closing door: ");
     Serial.println(pos1);
     myservo_door.write(pos1);
     delay(5);
   }
-  door_pos_position = 0;
+  door_position = 0;
 }
 
 void setDoorOpen(){
-  int pos1 = door_pos_position;
+  int pos1 = door_position;
   
   for (pos1; pos1 < 180; pos1 += 1) {
-    Serial.print("opening: ");
+    Serial.print("opening door: ");
     Serial.println(pos1);
     myservo_door.write(pos1);
     delay(5);
   }
-    door_pos_position = 180;
+    door_position = 180;
 }
 
-// Rotation base Funtions
-int getBaseRotation(){
+
+
+// Base Funtions
+int getBasePosition(){
   int valor = myservo_base.read();
-  Serial.print(" base loaded with value: ");
+  Serial.print("base loaded with value: ");
   Serial.println(valor);
-  delay(1000);
+  delay(10);
   return(valor);
 }
 
-void setBaseLeft (){
-  base_rotation -= 100;
-  //myservo_base.attach(servo_base_pin);
-  myservo_base.write(base_rotation);
-  //myservo_base.writeMicroseconds(base_rotation);
+void setBaseCesto3 (){
+  int pos2 = base_position;
 
-  //delay(3000);
-  /*angle = base_rotation;
-
-  for (angle; angle > 0; angle -= 1) {
-    Serial.print("rotating to lower: ");
-    Serial.println(angle);
-    myservo_base.write(angle);
-    delay(100);
+  for (pos2; pos2 > 0; pos2 -= 1) {
+    Serial.print("going to cesto 1: ");
+    Serial.println(pos2);
+    myservo_base.write(pos2);
+    delay(10);
   }
-  base_rotation = 0 ;*/
+  base_position = 0;
 }
 
-void setBaseRight (){
-  /*
-  myservo_base.attach(servo_base_pin);
-  myservo_base.writeMicroseconds(1500);
-  Serial.println("SET 0");
-  myservo_base.write(0); // stop rotating
-  delay(3000);
-  Serial.println("SET 90");
-  myservo_base.write(90); // stop rotating
-  delay(3000);
-  Serial.println("SET 180");
-  myservo_base.write(180); // full speed counter-clockwise
-  delay(3000);
-  Serial.println("SET 360");
-  myservo_base.write(360); // full speed counter-clockwise
-  delay(3000);
-  myservo_base.detach();
-*/
-
-
-  // wrong concep
-  /*
-  angle = base_rotation;
+void setBaseCesto1(){
+  int pos2 = base_position;
   
-  for (angle = 0; angle < 180; angle += 1) {
-    Serial.print("rotating to bigger: ");
-    Serial.println(angle);
-    myservo_base.write(angle);
-    delay(100);
+  for (pos2; pos2 < 180; pos2 += 1) {
+    Serial.print("going to cesto 3: ");
+    Serial.println(pos2);
+    myservo_base.write(pos2);
+    delay(10);
   }
-  myservo_base.write(90);
-  */
-
-  // testing continour servo motor 
-  base_rotation += 100;
-  //myservo_base.attach(servo_base_pin);
-  myservo_base.write(base_rotation);
-
-  //myservo_base.writeMicroseconds(base_rotation);
-  //delay(3000);
-
+    base_position = 180;
 }
 
 void thisDraw(String trash, int x, int y){
