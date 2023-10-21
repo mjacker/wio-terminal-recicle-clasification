@@ -1,4 +1,8 @@
 #include <Servo.h>
+#include"TFT_eSPI.h"
+
+TFT_eSPI tft;
+TFT_eSprite spr = TFT_eSprite(&tft);  // Sprite 
 /*----------------------------------------------------------------------------
  *        Headers
  *----------------------------------------------------------------------------*/
@@ -43,11 +47,27 @@ void setup() {
   
   // initializer
   door_pos_position = getDoorPosition();
+  setDoorClose();
+
+
+  // Sprite for the display
+  tft.begin();
+  tft.setRotation(3);
+  spr.createSprite(TFT_HEIGHT,TFT_WIDTH);
+
+  tft.fillScreen(TFT_RED);
 
 }
 
 void loop() {
   led();
+
+thisDraw("DoorPos: "+ (String)door_pos_position,10,10) ;
+  thisDraw("DoorPos: "+ (String)base_rotation, 10, 10) ;
+  thisDraw("ServoDoor_Read: " + (String)myservo_door.read(), 10, 20);
+  thisDraw("ServoDoorMicroSec: " + (String)myservo_door.readMicroseconds(), 10, 30);
+  thisDraw("ServoBase_Read: " + (String)myservo_base.read(), 10, 40);
+  thisDraw("ServoBaseMicroSec: " + (String)myservo_base.readMicroseconds(), 10, 50);
 
   // Print current values:
   Serial.print("\n\n\n\n\n\n------------------\n");
@@ -136,7 +156,7 @@ int getBaseRotation(){
 }
 
 void setBaseLeft (){
-  base_rotation -= 10;
+  base_rotation -= 100;
   //myservo_base.attach(servo_base_pin);
   myservo_base.write(base_rotation);
   //myservo_base.writeMicroseconds(base_rotation);
@@ -187,11 +207,17 @@ void setBaseRight (){
   */
 
   // testing continour servo motor 
-  base_rotation += 10;
+  base_rotation += 100;
   //myservo_base.attach(servo_base_pin);
   myservo_base.write(base_rotation);
 
   //myservo_base.writeMicroseconds(base_rotation);
   //delay(3000);
 
+}
+
+void thisDraw(String trash, int x, int y){
+  tft.setTextColor(TFT_WHITE);          //sets the text colour to black
+  tft.setTextSize(3);                   //sets the size of text
+  tft.drawString(trash, x, y);
 }
