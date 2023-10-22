@@ -1,64 +1,66 @@
-#include <Servo.h>
-#include"TFT_eSPI.h"
-
-TFT_eSPI tft;
-TFT_eSprite spr = TFT_eSprite(&tft);  // Sprite 
-/*----------------------------------------------------------------------------
- *        Headers
- *----------------------------------------------------------------------------*/
-// void led();
-// int getDoorPosition();
-// int getBasePosition();
-// void setDoorClose();
-// void setDoorOpen();
-// int getDoorPosition();
+#include <Servo.h> 
+#include"TFT_eSPI.h" // Wio Display
 
 /*----------------------------------------------------------------------------
- *        end Headers
+ *        Global Variables
  *----------------------------------------------------------------------------*/
-
-// door
 Servo myservo_door;
 Servo myservo_base;
+
+#define servo_door_pin D6
+#define servo_base_pin D2
 
 int door_position = 0; // 0 - 180
 int base_position = 0; // 0 - 180
 
+// Menu boolean flow
 bool finishLoadingScreen = false;
 bool idleStatus = false;
+
+// Display object manager.
+TFT_eSPI tft;
+TFT_eSprite spr = TFT_eSprite(&tft);  // Sprite 
+
+/*----------------------------------------------------------------------------
+ *        Seting up environment
+ *----------------------------------------------------------------------------*/
 void setup() {
   // Print messages in the console
   Serial.begin(9600); // open the serial port at 9600 bps:
 
-  myservo_door.attach(D6); // Connet servo 
-  myservo_base.attach(D2); //Connect servo 
+  // Attach servos to GPIO Digital
+  myservo_door.attach(servo_door_pin); 
+  myservo_base.attach(servo_base_pin); 
 
-  // door
-  pinMode(WIO_KEY_C, INPUT); // close door
-  pinMode(WIO_KEY_B, INPUT); // open door
-  pinMode(WIO_KEY_A, INPUT); // drop trash
-   
-  // base
-  pinMode(WIO_5S_LEFT, INPUT);
-  pinMode(WIO_5S_UP, INPUT);
-  pinMode(WIO_5S_RIGHT, INPUT);
-  
+  // Wio Buttons
+    // door
+    pinMode(WIO_KEY_C, INPUT); // close door
+    pinMode(WIO_KEY_B, INPUT); // open door
+    pinMode(WIO_KEY_A, INPUT); // drop trash
+    // base
+    pinMode(WIO_5S_LEFT, INPUT); // Go to trashcan 1
+    pinMode(WIO_5S_UP, INPUT);   // Go to trashcan 2
+    pinMode(WIO_5S_RIGHT, INPUT);// Go to trashcan 3
+
   // initializer
-  door_position = getDoorPosition();
-  base_position = getBasePosition();
-  setDoorClose();
-  setBaseCesto1();
+  door_position = getDoorPosition(); // Get started door position
+  base_position = getBasePosition(); // Get started base position
+  setDoorClose();  // set door to close
+  setBaseCesto1(); // set base to trashcan 1
   
-  // Sprite for the display
+  // Wio Display initialiter
   tft.begin();
   tft.setRotation(3);
   spr.createSprite(TFT_HEIGHT,TFT_WIDTH);
-  tft.fillScreen(TFT_BLUE);
+  tft.fillScreen(TFT_BLACK);
 
   // welcome Login
-  welcomeLogin();
+  welcomeLogin(); // first menu flow start
 }
 
+/*----------------------------------------------------------------------------
+ *        Main loop 
+ *----------------------------------------------------------------------------*/
 void loop() {
 
   if (finishLoadingScreen) {
@@ -71,9 +73,3 @@ void loop() {
   baseConditions();
   
 }
-
-
-
-
-
-
