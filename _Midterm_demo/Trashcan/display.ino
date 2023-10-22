@@ -34,7 +34,10 @@ void idleDisplay(){
     thisDraw("\t\t\tGroup 2", 10, 10, 3) ;
     thisDraw("--  Lazy Trashcan  --   ", 10, 40, 2);
     thisDraw("--------------------", 10, 60, 2) ;
-    thisDraw("- 13:33 hs ...", 10, 80, 2);
+    
+    //thisDraw("- 19:31 hs ...", 10, 80, 2);
+    getTime();
+    
     // delay(1000);
     thisDraw("- Temperature: 24 Celsius", 10, 100, 2);
     // delay(1000);
